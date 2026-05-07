@@ -22,13 +22,13 @@ import {
 import { FaFacebook, FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 import heroBg from "@/assets/hero-bg.png";
-import aboutImg from "@/assets/about-barber.png";
 import toolsImg from "@/assets/tools.png";
-import gallery1 from "@/assets/gallery-1.png";
-import gallery2 from "@/assets/gallery-2.png";
-import gallery3 from "@/assets/gallery-3.png";
-import gallery4 from "@/assets/gallery-4.png";
-import gallery5 from "@/assets/gallery-5.png";
+import aboutImg from "@assets/38a7363251344bd8aa752afbf2fc0c-top-of-the-world-barbering-cut_1778127820915.jpeg";
+import gallery1 from "@assets/165a6ab1b087419b9433e4b9326421-top-of-the-world-barbering-cut_1778127820653.jpeg";
+import gallery2 from "@assets/e16d342999804650be4922651ecc1c-top-of-the-world-barbering-cut_1778127820747.jpeg";
+import gallery3 from "@assets/e2de4f1138f1458ba03bdbbfeab884-top-of-the-world-barbering-cut_1778127820807.jpeg";
+import gallery4 from "@assets/54170c0b502647bfadf6aeec2382d6-top-of-the-world-barbering-cut_1778127820864.jpeg";
+import gallery5 from "@assets/87b09975c6c74671b295af4882e3d6-top-of-the-world-barbering-cut_1778127820965.jpeg";
 
 /* ─── Animated Counter ────────────────────────────────────── */
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -190,11 +190,11 @@ function Marquee() {
 
 /* ─── Drag Gallery ────────────────────────────────────────── */
 const GALLERY = [
-  { src: gallery1, label: "Skin Fade" },
-  { src: gallery2, label: "Scissor Cut" },
-  { src: gallery3, label: "Beard Trim" },
-  { src: gallery4, label: "Kids Cut" },
-  { src: gallery5, label: "High Taper" },
+  { src: gallery1, label: "Fresh Cut" },
+  { src: gallery2, label: "Clean Fade" },
+  { src: gallery3, label: "360 Waves" },
+  { src: gallery4, label: "Taper Fade" },
+  { src: gallery5, label: "Kids Cut" },
 ];
 
 function DragGallery() {
