@@ -19,7 +19,7 @@ import {
   ChevronRight,
   Phone,
 } from "lucide-react";
-import { FaFacebook, FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 import heroBg from "@/assets/hero-bg.png";
 import aboutImg from "@/assets/about-barber.png";
@@ -405,12 +405,14 @@ export default function Home() {
               </motion.span>
             </a>
             <a
-              href="tel:916-475-2789"
-              data-testid="hero-phone-cta"
-              className="inline-flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors duration-300 text-sm tracking-wider"
+              href="https://wa.me/19164752789?text=Hi%2C%20I%27d%20like%20to%20book%20an%20appointment%20at%20Top%20Of%20The%20World%20Barbershop"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="hero-whatsapp-cta"
+              className="inline-flex items-center gap-2 text-foreground/70 hover:text-green-400 transition-colors duration-300 text-sm tracking-wider group"
             >
-              <Phone className="w-4 h-4" />
-              (916) 475-2789
+              <FaWhatsapp className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+              Text us on WhatsApp
             </a>
           </motion.div>
         </motion.div>
@@ -880,12 +882,25 @@ export default function Home() {
                 <ChevronRight className="w-5 h-5" />
               </motion.span>
             </motion.a>
-            <p className="mt-6 text-sm text-muted-foreground">
-              Or call us at{" "}
-              <a href="tel:916-475-2789" className="text-primary hover:underline">
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="https://wa.me/19164752789?text=Hi%2C%20I%27d%20like%20to%20book%20an%20appointment%20at%20Top%20Of%20The%20World%20Barbershop"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="cta-whatsapp"
+                className="inline-flex items-center gap-2.5 border border-green-500/40 text-green-400 hover:bg-green-500/10 hover:border-green-400 px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <FaWhatsapp className="w-4 h-4" />
+                Text Us on WhatsApp
+              </a>
+              <a
+                href="tel:916-475-2789"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2"
+              >
+                <Phone className="w-3.5 h-3.5" />
                 (916) 475-2789
               </a>
-            </p>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -922,6 +937,15 @@ export default function Home() {
                   className="w-10 h-10 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors duration-300"
                 >
                   <FaInstagram className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://wa.me/19164752789?text=Hi%2C%20I%27d%20like%20to%20book%20an%20appointment%20at%20Top%20Of%20The%20World%20Barbershop"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  className="w-10 h-10 border border-border flex items-center justify-center text-muted-foreground hover:text-green-400 hover:border-green-500 transition-colors duration-300"
+                >
+                  <FaWhatsapp className="w-4 h-4" />
                 </a>
               </div>
             </div>
