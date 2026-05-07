@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { Menu, X } from "lucide-react";
+import logoSrc from "@assets/ae6347d9bfff4b56b0cf8f569b8eeafe-Top-of-the-World-Barbering-Cu_1778127921039.png";
 
 export function Nav() {
   const { scrollY } = useScroll();
@@ -34,19 +35,22 @@ export function Nav() {
       <motion.nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
           isScrolled
-            ? "bg-background/95 backdrop-blur-xl border-b border-border shadow-2xl shadow-black/50 py-3"
-            : "bg-transparent py-6"
+            ? "bg-background/95 backdrop-blur-xl border-b border-border shadow-2xl shadow-black/50 py-2"
+            : "bg-transparent py-4"
         }`}
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
-          <Link
-            href="/"
-            className="font-serif text-xl md:text-2xl font-bold tracking-tight text-foreground hover:text-primary transition-colors duration-300 cursor-pointer"
-          >
-            <span className="text-primary">✦</span> Top Of The World
+          <Link href="/" className="cursor-pointer flex items-center" data-testid="nav-logo">
+            <motion.img
+              src={logoSrc}
+              alt="Top Of The World Barbershop"
+              className="h-14 w-auto object-contain drop-shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-widest uppercase">
@@ -90,12 +94,20 @@ export function Nav() {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 bg-background/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-10"
           >
+            <motion.img
+              src={logoSrc}
+              alt="Top Of The World Barbershop"
+              className="h-24 w-auto object-contain mb-4"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+            />
             {navLinks.map((link, i) => (
               <motion.button
                 key={link.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: 0.15 + i * 0.08 }}
                 onClick={() => scrollToSection(link.id)}
                 className="font-serif text-4xl font-bold text-foreground hover:text-primary transition-colors"
               >
@@ -105,7 +117,7 @@ export function Nav() {
             <motion.a
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: navLinks.length * 0.08 }}
+              transition={{ delay: 0.15 + navLinks.length * 0.08 }}
               href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
               target="_blank"
               rel="noopener noreferrer"

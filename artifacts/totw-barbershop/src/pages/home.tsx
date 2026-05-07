@@ -23,6 +23,7 @@ import { FaFacebook, FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 import heroBg from "@/assets/hero-bg.png";
 import toolsImg from "@/assets/tools.png";
+import logoSrc from "@assets/ae6347d9bfff4b56b0cf8f569b8eeafe-Top-of-the-World-Barbering-Cu_1778127921039.png";
 import aboutImg from "@assets/38a7363251344bd8aa752afbf2fc0c-top-of-the-world-barbering-cut_1778127820915.jpeg";
 import gallery1 from "@assets/165a6ab1b087419b9433e4b9326421-top-of-the-world-barbering-cut_1778127820653.jpeg";
 import gallery2 from "@assets/e16d342999804650be4922651ecc1c-top-of-the-world-barbering-cut_1778127820747.jpeg";
@@ -910,9 +911,11 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-12 mb-16 max-w-5xl mx-auto">
             <div>
-              <h4 className="font-serif text-2xl font-bold mb-2 text-foreground">
-                <span className="text-primary">✦</span> Top Of The World
-              </h4>
+              <img
+                src={logoSrc}
+                alt="Top Of The World Barbershop"
+                className="h-24 w-auto object-contain mb-3 -ml-1"
+              />
               <p className="text-primary text-xs font-bold uppercase tracking-widest mb-5">
                 Where All Shades Get Fades
               </p>
