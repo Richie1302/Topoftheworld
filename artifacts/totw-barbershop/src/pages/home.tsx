@@ -244,6 +244,36 @@ function DragGallery() {
   );
 }
 
+/* ─── Service Row ─────────────────────────────────────────── */
+function ServiceRow({
+  item,
+  i,
+}: {
+  item: { name: string; duration: string; price: string };
+  i: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: i * 0.06 }}
+      className="flex items-center justify-between py-4 border-b border-border/40 last:border-0 group"
+    >
+      <div className="flex items-center gap-4">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors duration-300 shrink-0" />
+        <span className="font-medium text-foreground group-hover:text-primary transition-colors duration-300">
+          {item.name}
+        </span>
+      </div>
+      <div className="flex items-center gap-6 shrink-0">
+        <span className="text-xs text-muted-foreground tracking-wider hidden sm:block">{item.duration}</span>
+        <span className="font-serif font-bold text-lg text-primary">{item.price}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── Main Page ───────────────────────────────────────────── */
 export default function Home() {
   const heroRef = useRef(null);
@@ -444,57 +474,51 @@ export default function Home() {
           <Reveal>
             <Label text="The Menu" />
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-center mb-4">Precision & Detail</h2>
-            <p className="text-muted-foreground text-center text-lg max-w-lg mx-auto mb-16 leading-relaxed">
+            <p className="text-muted-foreground text-center text-lg max-w-lg mx-auto mb-20 leading-relaxed">
               Every service is executed with focus. No shortcuts, no rushed timers.
             </p>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          {/* Featured cards */}
+          <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto mb-20">
             {[
               {
-                name: "Haircut",
-                price: "$45",
+                name: "The Cut",
+                price: "from $20",
                 icon: <Scissors className="w-6 h-6" />,
-                desc: "Fades, tapers, textured crops, and clean classics — shaped to your head and your life.",
+                desc: "Fades, tapers, textured crops, clean line-ups, and classic cuts — shaped to your head and your life. Kids cuts available too.",
+                tag: "Most Popular",
               },
               {
-                name: "Kids Cut",
-                price: "$20",
+                name: "Face & Beard",
+                price: "from $15",
                 icon: <Star className="w-6 h-6" />,
-                desc: "Patience is part of the job. Sharp, clean styles for the next generation.",
+                desc: "Full beard trims, hot-towel shaves, razor lines, and facial treatments. Walk out looking like a new man.",
+                tag: "Premium Experience",
               },
               {
-                name: "Beard Trim",
-                price: "$25",
+                name: "Add-Ons",
+                price: "from $10",
                 icon: <CheckCircle2 className="w-6 h-6" />,
-                desc: "Sculpted lines, clean edges, hot towel finish. Walk out looking undeniably sharp.",
-              },
-              {
-                name: "Add-ons",
-                price: "$10",
-                icon: <ChevronRight className="w-6 h-6" />,
-                desc: "Custom detailing and enhancements that take your look from great to unmistakable.",
+                desc: "Shampoo, steam towel, and custom enhancements. Stack them on any service to go from great to unforgettable.",
+                tag: "Enhance Your Visit",
               },
             ].map((service, i) => (
-              <Reveal key={i} delay={i * 0.1} direction="up">
+              <Reveal key={i} delay={i * 0.12} direction="up">
                 <motion.div
                   className="relative bg-card border border-border p-7 overflow-hidden group cursor-default h-full flex flex-col"
                   whileHover={{ y: -6, borderColor: "hsl(39 65% 48% / 0.6)" }}
                   transition={{ duration: 0.3 }}
                   data-testid={`service-card-${i}`}
                 >
-                  {/* Glow on hover */}
-                  <motion.div
-                    className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500"
-                    style={{ pointerEvents: "none" }}
-                  />
-                  <motion.div
-                    className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  />
-
-                  <div className="flex justify-between items-start mb-5">
+                  <motion.div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500" style={{ pointerEvents: "none" }} />
+                  <motion.div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] text-primary bg-primary/10 px-3 py-1 mb-5 w-fit">
+                    {service.tag}
+                  </span>
+                  <div className="flex justify-between items-start mb-4">
                     <span className="text-primary">{service.icon}</span>
-                    <span className="font-serif text-2xl font-bold text-primary">{service.price}</span>
+                    <span className="font-serif text-xl font-bold text-primary">{service.price}</span>
                   </div>
                   <h3 className="font-serif text-2xl font-bold mb-3">{service.name}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed flex-grow">{service.desc}</p>
@@ -512,6 +536,91 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+
+          {/* Full price menu */}
+          <Reveal>
+            <div className="max-w-4xl mx-auto bg-card border border-border overflow-hidden">
+              {/* Menu header */}
+              <div className="bg-primary/10 border-b border-border px-8 py-5 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-[0.25em] text-primary">Full Price List</span>
+                <span className="text-xs text-muted-foreground tracking-wider">All prices from Booksy</span>
+              </div>
+
+              {/* Cut section */}
+              <div className="px-8 pt-8 pb-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <Scissors className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">The Cut</span>
+                  <span className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-0">
+                  {[
+                    { name: "Haircut", duration: "1 hr", price: "$45" },
+                    { name: "Line Up", duration: "30 min", price: "$20" },
+                    { name: "Kids Cut", duration: "30 min", price: "$20" },
+                  ].map((item, i) => (
+                    <ServiceRow key={i} item={item} i={i} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mx-8 border-t border-border" />
+
+              {/* Face & Beard section */}
+              <div className="px-8 pt-8 pb-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <Star className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Face & Beard</span>
+                  <span className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-0">
+                  {[
+                    { name: "Beard Trim", duration: "30 min", price: "$25" },
+                    { name: "Shave", duration: "20 min", price: "$25" },
+                    { name: "Facial", duration: "30 min", price: "$25" },
+                    { name: "Razor Line", duration: "30 min", price: "$15" },
+                  ].map((item, i) => (
+                    <ServiceRow key={i} item={item} i={i} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mx-8 border-t border-border" />
+
+              {/* Add-ons section */}
+              <div className="px-8 pt-8 pb-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Add-Ons</span>
+                  <span className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-0">
+                  {[
+                    { name: "Shampoo", duration: "15 min", price: "$10" },
+                    { name: "Steam Towel", duration: "15 min", price: "$10" },
+                    { name: "Enhancements", duration: "30 min", price: "$10" },
+                  ].map((item, i) => (
+                    <ServiceRow key={i} item={item} i={i} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Menu footer CTA */}
+              <div className="bg-primary/5 border-t border-border px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Ready to book? Select your service on Booksy.
+                </p>
+                <a
+                  href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-7 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-300 whitespace-nowrap"
+                >
+                  Book on Booksy <ChevronRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
