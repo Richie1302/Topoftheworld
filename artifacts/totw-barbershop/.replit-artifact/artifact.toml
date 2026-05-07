@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Top Of The World Barbershop"
+version = "1.0.0"
+id = "artifacts/totw-barbershop"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22458
+
+[services.development]
+run = "pnpm --filter @workspace/totw-barbershop run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/totw-barbershop", "run", "build" ]
+publicDir = "artifacts/totw-barbershop/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22458"
+BASE_PATH = "/"
