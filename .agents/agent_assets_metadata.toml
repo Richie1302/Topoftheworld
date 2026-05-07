@@ -1,0 +1,50 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "o5CfXZN-LVWBx3YhGPysF"
+uri = "file://artifacts/totw-barbershop/src/assets/hero-bg.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "CKm3rvsacZPneKFL2Z1cS"
+uri = "file://artifacts/totw-barbershop/src/assets/about-barber.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "XFF2UsbCEb7CskQe0UkYD"
+uri = "file://artifacts/totw-barbershop/src/assets/gallery-1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "9PLm-PKCHlLRlcfYUAMda"
+uri = "file://artifacts/totw-barbershop/src/assets/gallery-2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "AeEXHI5eSmKx8AisF4g7Z"
+uri = "file://artifacts/totw-barbershop/src/assets/gallery-3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "U2X-CHfOhrrF2ZAzYKisl"
+uri = "file://artifacts/totw-barbershop/src/assets/gallery-4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "X_ZnlgyZFHEPcniofF2d0"
+uri = "file://artifacts/totw-barbershop/src/assets/gallery-5.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "yFDdW3mOVCV-9QLiutCfr"
+uri = "file://artifacts/totw-barbershop/src/assets/tools.png"
+type = "image"
+title = "generated_image"

@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { motion, useScroll } from "framer-motion";
+import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
+import { Menu, X } from "lucide-react";
 
 export function Nav() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     return scrollY.on("change", (latest) => {
-      setIsScrolled(latest > 50);
+      setIsScrolled(latest > 60);
     });
   }, [scrollY]);
 
@@ -17,56 +19,103 @@ export function Nav() {
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
+    setMobileOpen(false);
   };
 
-  return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
-        isScrolled
-          ? "bg-background/90 backdrop-blur-md border-b border-border py-4"
-          : "bg-transparent py-6"
-      }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-    >
-      <div className="container mx-auto px-6 flex items-center justify-between">
-        <Link
-          href="/"
-          className="font-serif text-2xl font-bold tracking-tight text-foreground hover:text-primary transition-colors cursor-pointer"
-        >
-          Top Of The World
-        </Link>
+  const navLinks = [
+    { label: "Services", id: "services" },
+    { label: "Gallery", id: "gallery" },
+    { label: "About", id: "about" },
+    { label: "Reviews", id: "reviews" },
+  ];
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide uppercase">
+  return (
+    <>
+      <motion.nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+          isScrolled
+            ? "bg-background/95 backdrop-blur-xl border-b border-border shadow-2xl shadow-black/50 py-3"
+            : "bg-transparent py-6"
+        }`}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+      >
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          <Link
+            href="/"
+            className="font-serif text-xl md:text-2xl font-bold tracking-tight text-foreground hover:text-primary transition-colors duration-300 cursor-pointer"
+          >
+            <span className="text-primary">✦</span> Top Of The World
+          </Link>
+
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-widest uppercase">
+            {navLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => scrollToSection(link.id)}
+                className="relative text-foreground/70 hover:text-primary transition-colors duration-300 group"
+              >
+                {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-primary group-hover:w-full transition-all duration-300" />
+              </button>
+            ))}
+            <a
+              href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="nav-book-now"
+              className="bg-primary text-primary-foreground px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-300"
+            >
+              Book Now
+            </a>
+          </div>
+
           <button
-            onClick={() => scrollToSection("services")}
-            className="text-foreground/80 hover:text-primary transition-colors"
+            className="md:hidden text-foreground"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            data-testid="nav-mobile-toggle"
           >
-            Services
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-          <button
-            onClick={() => scrollToSection("about")}
-            className="text-foreground/80 hover:text-primary transition-colors"
-          >
-            About
-          </button>
-          <button
-            onClick={() => scrollToSection("reviews")}
-            className="text-foreground/80 hover:text-primary transition-colors"
-          >
-            Reviews
-          </button>
-          <a
-            href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-sm hover:bg-primary/90 hover:scale-105 transition-all duration-300 font-semibold"
-          >
-            Book Now
-          </a>
         </div>
-      </div>
-    </motion.nav>
+      </motion.nav>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-40 bg-background/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-10"
+          >
+            {navLinks.map((link, i) => (
+              <motion.button
+                key={link.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                onClick={() => scrollToSection(link.id)}
+                className="font-serif text-4xl font-bold text-foreground hover:text-primary transition-colors"
+              >
+                {link.label}
+              </motion.button>
+            ))}
+            <motion.a
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: navLinks.length * 0.08 }}
+              href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 bg-primary text-primary-foreground px-12 py-4 text-sm font-bold uppercase tracking-widest"
+            >
+              Book Now
+            </motion.a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

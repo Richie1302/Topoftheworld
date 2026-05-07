@@ -1,399 +1,871 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import {
+  motion,
+  useInView,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValue,
+  animate,
+} from "framer-motion";
+import { useRef, useEffect, useState } from "react";
 import { Nav } from "@/components/Nav";
-import { Star, MapPin, Clock, Calendar, ChevronDown, CheckCircle2 } from "lucide-react";
+import {
+  Star,
+  MapPin,
+  Clock,
+  ChevronDown,
+  CheckCircle2,
+  Scissors,
+  ChevronRight,
+  Phone,
+} from "lucide-react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 
-const SectionHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => {
+import heroBg from "@/assets/hero-bg.png";
+import aboutImg from "@/assets/about-barber.png";
+import toolsImg from "@/assets/tools.png";
+import gallery1 from "@/assets/gallery-1.png";
+import gallery2 from "@/assets/gallery-2.png";
+import gallery3 from "@/assets/gallery-3.png";
+import gallery4 from "@/assets/gallery-4.png";
+import gallery5 from "@/assets/gallery-5.png";
+
+/* ─── Animated Counter ────────────────────────────────────── */
+function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!inView || !ref.current) return;
+    const controls = animate(0, to, {
+      duration: 2,
+      ease: "easeOut",
+      onUpdate(v) {
+        if (ref.current) ref.current.textContent = `${Math.round(v)}${suffix}`;
+      },
+    });
+    return controls.stop;
+  }, [inView, to, suffix]);
+
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+/* ─── Section Reveal ──────────────────────────────────────── */
+function Reveal({
+  children,
+  delay = 0,
+  direction = "up",
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  direction?: "up" | "left" | "right" | "scale";
+  className?: string;
+}) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-10%" });
+  const inView = useInView(ref, { once: true, margin: "-8%" });
+
+  const variants = {
+    hidden: {
+      opacity: 0,
+      y: direction === "up" ? 40 : 0,
+      x: direction === "left" ? -50 : direction === "right" ? 50 : 0,
+      scale: direction === "scale" ? 0.92 : 1,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      x: 0,
+      scale: 1,
+      transition: { duration: 0.75, delay, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+  };
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.6 }}
-      className="text-center mb-16"
+      variants={variants}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      className={className}
     >
-      <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4">{title}</h2>
-      {subtitle && <p className="text-muted-foreground text-lg uppercase tracking-widest">{subtitle}</p>}
-      <div className="w-24 h-1 bg-primary mx-auto mt-8 rounded-full" />
+      {children}
     </motion.div>
   );
-};
+}
 
+/* ─── Section Label ───────────────────────────────────────── */
+function Label({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-3 justify-center mb-5">
+      <span className="h-px w-10 bg-primary block" />
+      <span className="text-primary text-xs font-bold uppercase tracking-[0.25em]">{text}</span>
+      <span className="h-px w-10 bg-primary block" />
+    </div>
+  );
+}
+
+/* ─── FAQ Item ────────────────────────────────────────────── */
+function FaqItem({ q, a, i }: { q: string; a: string; i: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Reveal delay={i * 0.07}>
+      <div className="border-b border-border">
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full flex items-center justify-between gap-4 py-6 text-left"
+          data-testid={`faq-item-${i}`}
+        >
+          <span className="font-serif text-xl font-semibold">{q}</span>
+          <motion.span
+            animate={{ rotate: open ? 90 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="shrink-0 text-primary"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </motion.span>
+        </button>
+        <AnimateHeight open={open}>
+          <p className="text-muted-foreground pb-6 leading-relaxed pr-8">{a}</p>
+        </AnimateHeight>
+      </div>
+    </Reveal>
+  );
+}
+
+function AnimateHeight({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
+      style={{ overflow: "hidden" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── Testimonial Marquee ─────────────────────────────────── */
+const REVIEWS = [
+  { quote: "Skip is the only one that can keep my hair cut right.", author: "Loyal Customer", src: "In-Shop" },
+  { quote: "These guys treat you like family. Exceptional barbers, hilarious conversations.", author: "Verified Client", src: "Booksy" },
+  { quote: "Solid place. Great cuts, good people, and never overpriced.", author: "Local Resident", src: "Google" },
+  { quote: "They know what they're doing. Best fade in Sacramento.", author: "Verified Client", src: "Booksy" },
+  { quote: "The vibe is low-key and welcoming. I bring my son here now too.", author: "Local Parent", src: "Google" },
+  { quote: "Rosario absolutely nailed my lineup. Clean every single time.", author: "Regular Client", src: "Booksy" },
+  { quote: "No rush, no shortcuts. They actually care about the cut.", author: "Satisfied Customer", src: "Google" },
+];
+
+function Marquee() {
+  const doubled = [...REVIEWS, ...REVIEWS];
+  return (
+    <div className="relative overflow-hidden" style={{ maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)" }}>
+      <motion.div
+        className="flex gap-6 w-max"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+      >
+        {doubled.map((r, i) => (
+          <div
+            key={i}
+            className="w-80 shrink-0 bg-card border border-border p-6 rounded-sm"
+          >
+            <div className="flex gap-1 mb-4">
+              {[...Array(5)].map((_, j) => (
+                <Star key={j} className="w-3.5 h-3.5 fill-primary text-primary" />
+              ))}
+            </div>
+            <p className="text-sm italic leading-relaxed mb-4 text-foreground/90">"{r.quote}"</p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">{r.author}</span>
+              <span className="text-xs text-muted-foreground">{r.src}</span>
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+/* ─── Drag Gallery ────────────────────────────────────────── */
+const GALLERY = [
+  { src: gallery1, label: "Skin Fade" },
+  { src: gallery2, label: "Scissor Cut" },
+  { src: gallery3, label: "Beard Trim" },
+  { src: gallery4, label: "Kids Cut" },
+  { src: gallery5, label: "High Taper" },
+];
+
+function DragGallery() {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 40 });
+
+  return (
+    <div className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none">
+      <motion.div
+        ref={trackRef}
+        drag="x"
+        dragConstraints={{ left: -((GALLERY.length - 1.5) * 320), right: 0 }}
+        style={{ x: springX }}
+        className="flex gap-5 px-6 md:px-12 w-max"
+      >
+        {GALLERY.map((item, i) => (
+          <motion.div
+            key={i}
+            className="relative w-64 md:w-72 shrink-0 overflow-hidden group"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+          >
+            <div className="relative aspect-[3/4] overflow-hidden rounded-sm">
+              <motion.img
+                src={item.src}
+                alt={item.label}
+                className="w-full h-full object-cover"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4">
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">{item.label}</span>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+      <p className="text-center text-xs text-muted-foreground tracking-widest uppercase mt-6">
+        Drag to explore
+      </p>
+    </div>
+  );
+}
+
+/* ─── Main Page ───────────────────────────────────────────── */
 export default function Home() {
+  const heroRef = useRef(null);
+  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(heroScroll, [0, 1], ["0%", "30%"]);
+  const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
+
+  const ctaRef = useRef(null);
+  const { scrollYProgress: ctaScroll } = useScroll({ target: ctaRef, offset: ["start end", "end start"] });
+  const ctaY = useTransform(ctaScroll, [0, 1], ["0%", "20%"]);
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
       <Nav />
 
-      {/* HERO SECTION */}
-      <section className="relative h-screen flex items-center justify-center pt-20 overflow-hidden">
-        {/* Abstract animated background elements */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-background/80 z-10" />
-          <motion.div 
-            className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] rounded-full bg-primary/10 blur-[100px]"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      {/* ── HERO ── */}
+      <section
+        ref={heroRef}
+        className="relative h-screen flex items-center justify-center overflow-hidden"
+      >
+        {/* Parallax background */}
+        <motion.div
+          className="absolute inset-0 z-0"
+          style={{ y: heroY }}
+        >
+          <img
+            src={heroBg}
+            alt="Top Of The World Barbershop interior"
+            className="w-full h-full object-cover scale-110"
           />
-          <motion.div 
-            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] rounded-full bg-primary/5 blur-[120px]"
-            animate={{ 
-              scale: [1.2, 1, 1.2],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/95" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
+        </motion.div>
 
-        <div className="container mx-auto px-6 relative z-10 text-center flex flex-col items-center">
+        {/* Animated gold orbs */}
+        <motion.div
+          className="absolute top-1/3 left-1/4 w-[30vw] h-[30vw] rounded-full bg-primary/8 blur-[120px] z-0"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/3 right-1/4 w-[25vw] h-[25vw] rounded-full bg-primary/5 blur-[100px] z-0"
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.div
+          className="container mx-auto px-6 relative z-10 text-center flex flex-col items-center"
+          style={{ opacity: heroOpacity }}
+        >
+          {/* Stars */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex items-center gap-2 mb-6 text-primary"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex items-center gap-2 mb-8"
           >
-            <Star className="w-5 h-5 fill-primary" />
-            <Star className="w-5 h-5 fill-primary" />
-            <Star className="w-5 h-5 fill-primary" />
-            <Star className="w-5 h-5 fill-primary" />
-            <Star className="w-5 h-5 fill-primary" />
-            <span className="text-foreground text-sm tracking-widest uppercase ml-2">4.9 on Booksy</span>
+            {[...Array(5)].map((_, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.5 + i * 0.08 }}
+              >
+                <Star className="w-5 h-5 fill-primary text-primary" />
+              </motion.span>
+            ))}
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="text-foreground/80 text-sm tracking-widest uppercase ml-3 font-medium"
+            >
+              4.9 on Booksy · 74+ Reviews
+            </motion.span>
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 max-w-4xl"
-          >
-            Where All Shades <span className="text-primary italic">Get Fades</span>
-          </motion.h1>
+          {/* Headline */}
+          <div className="overflow-hidden mb-2">
+            <motion.h1
+              initial={{ y: 120, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="font-serif text-6xl md:text-8xl lg:text-[9rem] font-bold leading-none tracking-tight"
+            >
+              Where All Shades
+            </motion.h1>
+          </div>
+          <div className="overflow-hidden mb-8">
+            <motion.h1
+              initial={{ y: 120, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              className="font-serif text-6xl md:text-8xl lg:text-[9rem] font-bold leading-none tracking-tight text-primary italic"
+            >
+              Get Fades.
+            </motion.h1>
+          </div>
 
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl font-light"
+            transition={{ duration: 0.8, delay: 0.85 }}
+            className="text-lg md:text-xl text-muted-foreground mb-12 max-w-xl font-light leading-relaxed"
           >
-            Precision fades, real conversation, and a chair that feels like it was built for you in Midtown Sacramento.
+            Precision fades, real conversation, and a chair that feels like it was built for you.{" "}
+            <span className="text-foreground/70">Midtown Sacramento.</span>
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
+            transition={{ duration: 0.6, delay: 1.05, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col sm:flex-row items-center gap-4"
           >
             <a
               href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-primary text-primary-foreground px-10 py-5 rounded-sm text-lg font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-105 transition-all duration-300 shadow-lg shadow-primary/20"
+              data-testid="hero-book-cta"
+              className="group inline-flex items-center gap-3 bg-primary text-primary-foreground px-10 py-5 text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 active:scale-95"
             >
               Book Your Chair
+              <motion.span
+                animate={{ x: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </motion.span>
+            </a>
+            <a
+              href="tel:916-475-2789"
+              data-testid="hero-phone-cta"
+              className="inline-flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors duration-300 text-sm tracking-wider"
+            >
+              <Phone className="w-4 h-4" />
+              (916) 475-2789
             </a>
           </motion.div>
-        </div>
+        </motion.div>
 
-        <motion.div 
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Scroll indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
         >
-          <ChevronDown className="w-8 h-8 text-muted-foreground" />
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronDown className="w-5 h-5 text-primary" />
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* STATS STRIP */}
-      <section className="bg-card border-y border-border py-8 relative z-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-border">
-            <div className="flex flex-col items-center justify-center p-4">
-              <span className="text-3xl font-serif font-bold text-primary mb-2">4.9</span>
-              <span className="text-sm uppercase tracking-wider text-muted-foreground">Booksy Rating</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <span className="text-3xl font-serif font-bold text-primary mb-2">74+</span>
-              <span className="text-sm uppercase tracking-wider text-muted-foreground">Five-Star Reviews</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <MapPin className="w-8 h-8 text-primary mb-3" />
-              <span className="text-sm uppercase tracking-wider text-muted-foreground">Midtown Sac</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-4">
-              <Clock className="w-8 h-8 text-primary mb-3" />
-              <span className="text-sm uppercase tracking-wider text-muted-foreground">Tue-Sat 9AM-6PM</span>
-            </div>
+      {/* ── STATS STRIP ── */}
+      <section className="relative z-20 bg-card border-y border-border overflow-hidden">
+        <motion.div
+          className="absolute inset-0 bg-primary/3"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <div className="container mx-auto px-6 py-10 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-border">
+            {[
+              { value: 4.9, suffix: "★", label: "Booksy Rating", isDecimal: true },
+              { value: 74, suffix: "+", label: "Five-Star Reviews" },
+              { value: 42, suffix: "+", label: "Google Reviews" },
+              { icon: <Clock className="w-7 h-7 text-primary" />, label: "Tue–Sat  9AM–6PM" },
+            ].map((stat, i) => (
+              <Reveal key={i} delay={i * 0.1} direction="scale">
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  {"icon" in stat ? (
+                    <>{stat.icon}</>
+                  ) : (
+                    <span className="text-3xl md:text-4xl font-serif font-bold text-primary mb-1">
+                      {stat.isDecimal ? (
+                        <span>{stat.value}{stat.suffix}</span>
+                      ) : (
+                        <Counter to={stat.value as number} suffix={stat.suffix} />
+                      )}
+                    </span>
+                  )}
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground mt-2">{stat.label}</span>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* SERVICES */}
-      <section id="services" className="py-24 md:py-32 relative">
+      {/* ── SERVICES ── */}
+      <section id="services" className="py-28 md:py-36">
         <div className="container mx-auto px-6">
-          <SectionHeader title="The Menu" subtitle="Precision & Detail" />
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <Reveal>
+            <Label text="The Menu" />
+            <h2 className="font-serif text-4xl md:text-6xl font-bold text-center mb-4">Precision & Detail</h2>
+            <p className="text-muted-foreground text-center text-lg max-w-lg mx-auto mb-16 leading-relaxed">
+              Every service is executed with focus. No shortcuts, no rushed timers.
+            </p>
+          </Reveal>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
             {[
-              { name: "Haircut", price: "$45", desc: "Classic cuts, fades, tapers, and modern styles tailored to your exact head shape and lifestyle." },
-              { name: "Kids Cut", price: "$20", desc: "Patience and precision for the next generation. Sharp styles for every age." },
-              { name: "Beard Trim", price: "$25", desc: "Sculpting, lining, and hot towel prep. Walk out looking like a new man." },
-              { name: "Add-ons", price: "$10", desc: "Enhance your experience with custom detailing, enhancements, or deep conditioning." }
-            ].map((service, i) => {
-              const ref = useRef(null);
-              const isInView = useInView(ref, { once: true });
-              
-              return (
+              {
+                name: "Haircut",
+                price: "$45",
+                icon: <Scissors className="w-6 h-6" />,
+                desc: "Fades, tapers, textured crops, and clean classics — shaped to your head and your life.",
+              },
+              {
+                name: "Kids Cut",
+                price: "$20",
+                icon: <Star className="w-6 h-6" />,
+                desc: "Patience is part of the job. Sharp, clean styles for the next generation.",
+              },
+              {
+                name: "Beard Trim",
+                price: "$25",
+                icon: <CheckCircle2 className="w-6 h-6" />,
+                desc: "Sculpted lines, clean edges, hot towel finish. Walk out looking undeniably sharp.",
+              },
+              {
+                name: "Add-ons",
+                price: "$10",
+                icon: <ChevronRight className="w-6 h-6" />,
+                desc: "Custom detailing and enhancements that take your look from great to unmistakable.",
+              },
+            ].map((service, i) => (
+              <Reveal key={i} delay={i * 0.1} direction="up">
                 <motion.div
-                  key={i}
-                  ref={ref}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="bg-card border border-border p-8 rounded-sm hover:border-primary/50 transition-all duration-300 group hover:shadow-[0_0_30px_-5px_rgba(201,146,42,0.15)] flex flex-col h-full"
+                  className="relative bg-card border border-border p-7 overflow-hidden group cursor-default h-full flex flex-col"
+                  whileHover={{ y: -6, borderColor: "hsl(39 65% 48% / 0.6)" }}
+                  transition={{ duration: 0.3 }}
+                  data-testid={`service-card-${i}`}
                 >
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="font-serif text-2xl font-bold">{service.name}</h3>
-                    <span className="text-xl font-bold text-primary">{service.price}</span>
+                  {/* Glow on hover */}
+                  <motion.div
+                    className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500"
+                    style={{ pointerEvents: "none" }}
+                  />
+                  <motion.div
+                    className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  />
+
+                  <div className="flex justify-between items-start mb-5">
+                    <span className="text-primary">{service.icon}</span>
+                    <span className="font-serif text-2xl font-bold text-primary">{service.price}</span>
                   </div>
-                  <p className="text-muted-foreground leading-relaxed flex-grow">{service.desc}</p>
-                  <div className="mt-8 pt-6 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-primary text-sm uppercase tracking-widest font-semibold flex items-center gap-2">
-                      Book Service <ChevronDown className="w-4 h-4 -rotate-90" />
-                    </span>
+                  <h3 className="font-serif text-2xl font-bold mb-3">{service.name}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed flex-grow">{service.desc}</p>
+                  <div className="mt-6 pt-5 border-t border-border">
+                    <a
+                      href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 hover:gap-3 transition-all duration-300"
+                    >
+                      Book This <ChevronRight className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </motion.div>
-              );
-            })}
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ABOUT */}
-      <section id="about" className="py-24 md:py-32 bg-card relative border-y border-border">
-        <div className="container mx-auto px-6">
+      {/* ── GALLERY ── */}
+      <section id="gallery" className="py-16 md:py-24 border-y border-border bg-card overflow-hidden">
+        <Reveal className="container mx-auto px-6 mb-12">
+          <Label text="The Work" />
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-center">Fresh Out the Chair</h2>
+        </Reveal>
+        <DragGallery />
+      </section>
+
+      {/* ── ABOUT ── */}
+      <section id="about" className="py-28 md:py-36 relative overflow-hidden">
+        {/* Background tools image */}
+        <div className="absolute inset-0 opacity-5 z-0">
+          <img src={toolsImg} alt="" className="w-full h-full object-cover" />
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">Rooted in Midtown.</h2>
-              <h3 className="text-2xl text-primary font-serif italic mb-8">Not a franchise. Not a chain.</h3>
-              
-              <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
+            {/* Image with clip-path reveal */}
+            <Reveal direction="left">
+              <div className="relative group">
+                <motion.div
+                  className="relative overflow-hidden aspect-[4/5]"
+                  initial={{ clipPath: "inset(100% 0% 0% 0%)" }}
+                  whileInView={{ clipPath: "inset(0% 0% 0% 0%)" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.1, delay: 0.2, ease: [0.76, 0, 0.24, 1] }}
+                >
+                  <img
+                    src={aboutImg}
+                    alt="Barber at work"
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+                </motion.div>
+                {/* Gold frame accent */}
+                <div className="absolute -bottom-4 -right-4 w-full h-full border border-primary/30 pointer-events-none z-10" />
+                {/* Floating badge */}
+                <motion.div
+                  className="absolute -top-5 -right-5 bg-primary text-primary-foreground px-5 py-3 z-20"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                >
+                  <span className="text-xs font-bold uppercase tracking-widest block">Midtown's Own</span>
+                  <span className="text-2xl font-serif font-bold">Since Day One</span>
+                </motion.div>
+              </div>
+            </Reveal>
+
+            {/* Text */}
+            <Reveal direction="right" delay={0.2}>
+              <Label text="Our Story" />
+              <h2 className="font-serif text-4xl md:text-5xl font-bold mb-3 leading-tight">
+                Rooted in Midtown.
+              </h2>
+              <h3 className="text-xl text-primary font-serif italic mb-8">
+                Not a franchise. Never will be.
+              </h3>
+
+              <div className="space-y-5 text-muted-foreground leading-relaxed text-[1.05rem]">
                 <p>
-                  Top Of The World is the neighborhood barbershop Midtown Sacramento didn't know it needed. We built this place on two things: precision fades and real conversation.
+                  Top Of The World is the neighborhood barbershop Midtown Sacramento didn't know it needed. 
+                  Built on two things that never go out of style: precision fades and real conversation.
                 </p>
                 <p>
-                  Skip and Rosario do what they love, the way they've always done it. This isn't about rushing you out of the chair to hit a quota. It's about sitting down, taking a breath, and walking out with the confidence that only comes from a perfect cut.
+                  Skip and Rosario do what they love, the way they've always done it. No quota, no rush. 
+                  You sit down, take a breath, and walk out with the kind of confidence that only comes 
+                  from a cut that was actually built for you.
                 </p>
-                <p className="text-foreground font-medium pt-4">
-                  Community-rooted, skill-driven, and open to every shade and every fade.
+                <p className="text-foreground font-semibold text-lg font-serif italic">
+                  "Community-rooted, skill-driven, and open to every shade and every fade."
                 </p>
               </div>
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative aspect-square md:aspect-[4/3] rounded-sm overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-primary/20 mix-blend-overlay z-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop" 
-                alt="Barbershop interior" 
-                className="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-700"
-              />
-              <div className="absolute inset-0 border-2 border-primary/30 m-4 rounded-sm z-20 pointer-events-none"></div>
-            </motion.div>
+
+              <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                <a
+                  href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+                >
+                  Book with Skip or Rosario <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* WHY CHOOSE US */}
-      <section className="py-24 md:py-32">
+      {/* ── WHY CHOOSE US ── */}
+      <section className="py-28 md:py-36 bg-card border-y border-border">
         <div className="container mx-auto px-6">
-          <SectionHeader title="The Standard" subtitle="Why We Stand Out" />
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <Reveal>
+            <Label text="The Standard" />
+            <h2 className="font-serif text-4xl md:text-5xl font-bold text-center mb-16">Why This Chair</h2>
+          </Reveal>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {[
-              { title: "Precision Fades", desc: "No rushed jobs. Every line, every blend is executed with absolute focus." },
-              { title: "Community First", desc: "When you sit in our chair, you're not just a client. You're part of the Midtown family." },
-              { title: "Every Shade Welcome", desc: "We know every hair type and texture. True mastery means delivering perfection for everyone." },
-              { title: "Seamless Booking", desc: "Your time is valuable. Book exactly when you want through our streamlined Booksy integration." }
+              {
+                title: "Precision Fades",
+                desc: "Every line, every blend — executed with absolute focus. No rushed jobs, no second guesses.",
+                num: "01",
+              },
+              {
+                title: "Community First",
+                desc: "When you sit in our chair, you're part of the Midtown family. Real people, real conversation.",
+                num: "02",
+              },
+              {
+                title: "Every Shade Welcome",
+                desc: "True mastery means delivering perfection across every hair type and texture. That's the promise.",
+                num: "03",
+              },
+              {
+                title: "Book in 60 Seconds",
+                desc: "Your time is as valuable as your look. Our Booksy integration makes securing your spot effortless.",
+                num: "04",
+              },
             ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="flex gap-6 p-6"
-              >
-                <div className="shrink-0 mt-1">
-                  <CheckCircle2 className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-serif text-2xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
-              </motion.div>
+              <Reveal key={i} delay={i * 0.1}>
+                <motion.div
+                  className="relative border border-border p-8 group overflow-hidden"
+                  whileHover={{ borderColor: "hsl(39 65% 48% / 0.5)" }}
+                  transition={{ duration: 0.3 }}
+                  data-testid={`why-card-${i}`}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-primary/0 group-hover:bg-primary/4 transition-colors duration-500"
+                    style={{ pointerEvents: "none" }}
+                  />
+                  <span className="text-[5rem] font-serif font-bold text-primary/10 absolute -top-4 -right-2 leading-none select-none">
+                    {item.num}
+                  </span>
+                  <h3 className="font-serif text-2xl font-bold mb-3 relative z-10">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed relative z-10">{item.desc}</p>
+                </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section id="reviews" className="py-24 md:py-32 bg-card border-y border-border">
-        <div className="container mx-auto px-6">
-          <SectionHeader title="Word on the Street" subtitle="Real Voices" />
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {[
-              { quote: "Skip is the only one that can keep my hair cut right.", author: "Loyal Customer", source: "In-Shop" },
-              { quote: "These guys treat you like family. Exceptional barbers, hilarious conversations.", author: "Verified Client", source: "Booksy" },
-              { quote: "Solid place. Great cuts, good people, and never overpriced.", author: "Local Resident", source: "Google" },
-              { quote: "They know what they're doing. Best fade in Sacramento.", author: "Verified Client", source: "Booksy" },
-              { quote: "The vibe is low-key and welcoming. I bring my son here now too.", author: "Local Parent", source: "Google" }
-            ].map((review, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="bg-background p-8 rounded-sm border border-border"
-              >
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-lg italic mb-6 leading-relaxed">"{review.quote}"</p>
-                <div>
-                  <p className="font-bold uppercase tracking-widest text-sm text-primary">{review.author}</p>
-                  <p className="text-sm text-muted-foreground">{review.source} Review</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+      {/* ── TESTIMONIALS MARQUEE ── */}
+      <section id="reviews" className="py-28 md:py-36 overflow-hidden">
+        <div className="container mx-auto px-6 mb-14">
+          <Reveal>
+            <Label text="Real Voices" />
+            <h2 className="font-serif text-4xl md:text-5xl font-bold text-center">Word on the Street</h2>
+          </Reveal>
         </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-24 md:py-32">
-        <div className="container mx-auto px-6">
-          <SectionHeader title="Details" subtitle="Frequently Asked" />
-          
-          <div className="max-w-3xl mx-auto space-y-6">
-            {[
-              { q: "Do I need an appointment?", a: "While we sometimes can accommodate walk-ins, we highly recommend booking an appointment online to guarantee your spot in the chair." },
-              { q: "What services do you offer?", a: "We specialize in precision haircuts, fades, tapers, kids cuts, and full beard trims with hot towel service." },
-              { q: "How much does a cut cost?", a: "Our standard haircut is $45. Kids cuts are $20, and beard trims are $25." },
-              { q: "Where are you located?", a: "We're right in the heart of Midtown Sacramento at 1910 28th St." },
-              { q: "Do you do kids cuts?", a: "Absolutely. We offer kids cuts for $20 and maintain a welcoming, family-friendly environment." }
-            ].map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="border-b border-border pb-6"
-              >
-                <h3 className="font-serif text-xl font-bold mb-3">{faq.q}</h3>
-                <p className="text-muted-foreground">{faq.a}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA SECTION */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/10 z-0" />
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl mx-auto"
-          >
-            <h2 className="font-serif text-5xl md:text-6xl font-bold mb-8">Ready for a real cut?</h2>
-            <p className="text-xl text-muted-foreground mb-12">
-              Secure your spot with Skip or Rosario. Don't settle for less than the best in Midtown.
-            </p>
+        <Marquee />
+        <div className="container mx-auto px-6 mt-10 text-center">
+          <Reveal delay={0.2}>
             <a
               href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-primary text-primary-foreground px-12 py-6 rounded-sm text-xl font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-105 transition-all duration-300 shadow-2xl shadow-primary/20"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors uppercase tracking-widest"
             >
-              Book Appointment Now
+              Read all reviews on Booksy <ChevronRight className="w-4 h-4" />
             </a>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FAQ ── */}
+      <section className="py-28 md:py-36 bg-card border-y border-border">
+        <div className="container mx-auto px-6">
+          <Reveal>
+            <Label text="FAQ" />
+            <h2 className="font-serif text-4xl md:text-5xl font-bold text-center mb-16">Good Questions</h2>
+          </Reveal>
+          <div className="max-w-2xl mx-auto">
+            {[
+              {
+                q: "Do I need an appointment?",
+                a: "We strongly recommend booking ahead through Booksy to guarantee your spot. Walk-ins depend on availability, and we'd hate for you to make the trip for nothing.",
+              },
+              {
+                q: "What services do you offer?",
+                a: "Precision haircuts, fades, tapers, textured crops, kids cuts, beard trims with hot towel service, and various add-on detailing options.",
+              },
+              {
+                q: "How much does a cut cost?",
+                a: "Standard haircuts are $45. Kids cuts are $20. Beard trims run $25. Add-ons are $10 each. Straightforward pricing, no surprises.",
+              },
+              {
+                q: "Where exactly are you located?",
+                a: "Right in the heart of Midtown Sacramento — 1910 28th St, Sacramento, CA 95816. Easy to find, easy to park.",
+              },
+              {
+                q: "Do you cut kids' hair?",
+                a: "Absolutely. Kids cuts are $20, and we keep a welcoming, patient environment for the younger clients. Bring the whole family.",
+              },
+            ].map((faq, i) => (
+              <FaqItem key={i} q={faq.q} a={faq.a} i={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section
+        ref={ctaRef}
+        className="relative py-40 overflow-hidden flex items-center justify-center"
+      >
+        {/* Parallax background image */}
+        <motion.div
+          className="absolute inset-0 z-0"
+          style={{ y: ctaY }}
+        >
+          <img
+            src={heroBg}
+            alt=""
+            className="w-full h-full object-cover scale-110 opacity-30"
+          />
+          <div className="absolute inset-0 bg-background/80" />
+        </motion.div>
+
+        {/* Glowing orb */}
+        <motion.div
+          className="absolute w-[60vw] h-[60vw] rounded-full bg-primary/10 blur-[150px] z-0"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 7, repeat: Infinity }}
+        />
+
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <Reveal direction="scale">
+            <Label text="Your Next Cut" />
+            <h2 className="font-serif text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Ready for a real cut?
+            </h2>
+            <p className="text-xl text-muted-foreground mb-12 max-w-md mx-auto leading-relaxed">
+              Secure your spot with Skip or Rosario. Don't settle for less than the best fade in Midtown.
+            </p>
+            <motion.a
+              href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="cta-book-now"
+              className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-14 py-6 text-base font-bold uppercase tracking-widest shadow-2xl shadow-primary/30"
+              whileHover={{ scale: 1.05, boxShadow: "0 30px 60px -10px hsl(39 65% 48% / 0.4)" }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+            >
+              Book Appointment Now
+              <motion.span
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </motion.span>
+            </motion.a>
+            <p className="mt-6 text-sm text-muted-foreground">
+              Or call us at{" "}
+              <a href="tel:916-475-2789" className="text-primary hover:underline">
+                (916) 475-2789
+              </a>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
       <footer className="bg-card border-t border-border pt-20 pb-10">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-12 mb-16 max-w-5xl mx-auto text-center md:text-left">
+          <div className="grid md:grid-cols-3 gap-12 mb-16 max-w-5xl mx-auto">
             <div>
-              <h4 className="font-serif text-2xl font-bold mb-6 text-foreground">Top Of The World</h4>
-              <p className="text-muted-foreground mb-6 max-w-xs mx-auto md:mx-0">
-                Where All Shades Get Fades. Midtown's premier destination for precision cuts and real community.
+              <h4 className="font-serif text-2xl font-bold mb-2 text-foreground">
+                <span className="text-primary">✦</span> Top Of The World
+              </h4>
+              <p className="text-primary text-xs font-bold uppercase tracking-widest mb-5">
+                Where All Shades Get Fades
               </p>
-              <div className="flex justify-center md:justify-start gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
-                  <FaInstagram className="w-5 h-5" />
+              <p className="text-muted-foreground text-sm mb-6 max-w-xs leading-relaxed">
+                Midtown's premier destination for precision cuts, real community, and the kind of confidence you carry all week.
+              </p>
+              <div className="flex gap-3">
+                <a
+                  href="https://www.facebook.com/TopOfTheWorldBarberingStyles/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-10 h-10 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors duration-300"
+                >
+                  <FaFacebook className="w-4 h-4" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
-                  <FaFacebook className="w-5 h-5" />
+                <a
+                  href="https://www.instagram.com/explore/locations/745515716/top-of-the-world-barbering-styles/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-10 h-10 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors duration-300"
+                >
+                  <FaInstagram className="w-4 h-4" />
                 </a>
               </div>
             </div>
-            
-            <div className="flex flex-col items-center md:items-start">
-              <h4 className="font-bold uppercase tracking-widest text-sm mb-6 text-foreground">Location</h4>
-              <p className="text-muted-foreground mb-2">1910 28th St</p>
-              <p className="text-muted-foreground mb-4">Sacramento, CA 95816</p>
-              <a href="tel:916-475-2789" className="text-primary font-serif text-xl hover:text-primary/80 transition-colors">
+
+            <div>
+              <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-foreground flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-primary" /> Location
+              </h4>
+              <address className="not-italic text-muted-foreground text-sm space-y-1.5">
+                <p>1910 28th St</p>
+                <p>Sacramento, CA 95816</p>
+                <p className="pt-2">Midtown Sacramento</p>
+              </address>
+              <a
+                href="tel:916-475-2789"
+                className="mt-4 inline-block text-primary font-serif text-xl hover:text-primary/80 transition-colors"
+              >
                 (916) 475-2789
               </a>
             </div>
-            
-            <div className="flex flex-col items-center md:items-start">
-              <h4 className="font-bold uppercase tracking-widest text-sm mb-6 text-foreground">Hours</h4>
-              <div className="space-y-2 text-muted-foreground text-sm w-full max-w-[200px]">
-                <div className="flex justify-between">
-                  <span>Tue - Sat</span>
-                  <span>9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday</span>
-                  <span>Closed</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Monday</span>
-                  <span>Closed</span>
-                </div>
+
+            <div>
+              <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-foreground flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-primary" /> Hours
+              </h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {[
+                  ["Tuesday – Saturday", "9:00 AM – 6:00 PM"],
+                  ["Sunday", "Closed"],
+                  ["Monday", "Closed"],
+                ].map(([day, time]) => (
+                  <div key={day} className="flex justify-between gap-4">
+                    <span>{day}</span>
+                    <span className={time === "Closed" ? "text-muted-foreground/50" : "text-foreground"}>{time}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6">
+                <a
+                  href="https://booksy.com/en-us/198620_top-of-the-world-barbering-cuts-and-styles_barber-shop_134653_sacramento"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                >
+                  Book Online via Booksy →
+                </a>
               </div>
             </div>
           </div>
-          
-          <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
+
+          <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
             <p>&copy; 2025 Top Of The World Barbershop. All rights reserved.</p>
+            <p className="text-primary/60">1910 28th St, Sacramento, CA 95816</p>
           </div>
         </div>
       </footer>
