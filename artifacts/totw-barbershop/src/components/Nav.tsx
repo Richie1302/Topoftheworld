@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { Menu, X } from "lucide-react";
-import logoSrc from "@assets/ae6347d9bfff4b56b0cf8f569b8eeafe-Top-of-the-World-Barbering-Cu_1778127921039.png";
+import { LogoMark } from "@/components/Logo";
 
 export function Nav() {
   const { scrollY } = useScroll();
@@ -44,13 +44,12 @@ export function Nav() {
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="cursor-pointer flex items-center" data-testid="nav-logo">
-            <motion.img
-              src={logoSrc}
-              alt="Top Of The World Barbershop"
-              className="h-14 w-auto object-contain drop-shadow-lg"
+            <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
-            />
+            >
+              <LogoMark className="h-14 w-auto drop-shadow-lg" />
+            </motion.div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-widest uppercase">
@@ -94,14 +93,13 @@ export function Nav() {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 bg-background/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-10"
           >
-            <motion.img
-              src={logoSrc}
-              alt="Top Of The World Barbershop"
-              className="h-24 w-auto object-contain mb-4"
+            <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
-            />
+            >
+              <LogoMark className="h-28 w-auto mb-4" />
+            </motion.div>
             {navLinks.map((link, i) => (
               <motion.button
                 key={link.id}
